@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Boncel Shop Affiliate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #e91e63;
+      text-align: center;
+    }
+
+    .product {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .product img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .product h3 {
+      margin: 10px 0 5px;
+      color: #333;
+    }
+
+    .product p {
+      color: #666;
+    }
+
+    .product a {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 15px;
+      background: #e91e63;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .search, .admin-password, .admin-form input, .admin-form textarea {
+      display: block;
+      margin: 15px auto;
+      max-width: 400px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .admin-form {
+      background: #fff0f5;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 15px;
+      background: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Koleksi Racun Boncel 🛍️</h1>
+
+<input class="search" type="text" id="searchInput" placeholder="Cari produk...">
+
+<div id="productContainer"></div>
+
+<hr>
+
+<div id="adminSection">
+  <input type="password" class="admin-password" id="adminPassword" placeholder="Masukkan Sandi Admin">
+  <button onclick="checkAdmin()">Masuk sebagai Admin</button>
+</div>
+
+<div id="adminFormContainer" style="display:none;">
+  <form id="adminForm" class="admin-form">
+    <input type="text" id="nameInput" placeholder="Nama Produk" required>
+    <textarea id="descInput" placeholder="Deskripsi Produk" required></textarea>
+    <input type="url" id="linkInput" placeholder="Link Produk (https://...)" required>
+    <input type="file" id="imgInput" accept="image/*" required>
+    <img id="imgPreview" src="" alt="" style="display:none; margin: 10px auto; max-width: 200px; border-radius: 8px;">
+    <button type="submit">Tambah Produk</button>
+  </form>
+</div>
+
+<script>
+  const ADMIN_SECRET = "mocul lucu2010";
+
+  let products = JSON.parse(localStorage.getItem('products') || '[]');
+
+  const container = document.getElementById('productContainer');
+  const input = document.getElementById('searchInput');
+
+  function renderProducts(filter = '') {
+    container.innerHTML = '';
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(filter.toLowerCase()) ||
+      p.description.toLowerCase().includes(filter.toLowerCase())
+    );
+    if (filtered.length === 0) {
+      container.innerHTML = '<p style="text-align:center;color:#999;">Belum ada produk ditambahkan.</p>';
+    } else {
+      filtered.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'product';
+        el.innerHTML = `
+          <img src="${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>${p.description}</p>
+          <a href="${p.link}" target="_blank">Cek Produk</a>
+        `;
+        container.appendChild(el);
+      });
+    }
+  }
+
+  input.addEventListener('input', () => renderProducts(input.value));
+  renderProducts();
+
+  function checkAdmin() {
+    const pass = document.getElementById('adminPassword').value;
+    if (pass === ADMIN_SECRET) {
+      document.getElementById('adminSection').style.display = 'none';
+      document.getElementById('adminFormContainer').style.display = 'block';
+    } else {
+      alert('Sandi salah!');
+    }
+  }
+
+  let selectedImage = '';
+
+  document.getElementById('imgInput').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        selectedImage = reader.result;
+        const preview = document.getElementById('imgPreview');
+        preview.src = selectedImage;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('adminForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('nameInput').value;
+    const description = document.getElementById('descInput').value;
+    const link = document.getElementById('linkInput').value;
+
+    if (!selectedImage) {
+      alert("Gambar belum dipilih.");
+      return;
+    }
+
+    const newProduct = { name, description, link, image: selectedImage };
+    products.unshift(newProduct);
+    localStorage.setItem('products', JSON.stringify(products));
+    renderProducts();
+    e.target.reset();
+    document.getElementById('imgPreview').style.display = 'none';
+    selectedImage = '';
+    alert('Produk berhasil ditambahkan!');
+  });
+</script>
+
+</body>
+</html>
